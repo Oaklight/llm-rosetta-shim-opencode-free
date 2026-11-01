@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-rosetta-shim-opencode-free"
+dynamic = ["version"]
+description = "OpenCode Zen keyless free-lane shim for llm-rosetta, delivered as a plugin package"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Oaklight" }]
+keywords = ["llm", "llm-rosetta", "shim", "opencode", "zen", "free"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: MIT License",
+]
+# ``connection.session_id_format`` / ``request_id_format`` and the free-source
+# metadata land in 0.14; an older core ignores them, so the floor is what makes
+# the minted identifiers actually follow OpenCode's layout.
+dependencies = ["llm-rosetta>=0.14.0.dev0"]
+
+[project.urls]
+Repository = "https://github.com/Oaklight/llm-rosetta-shim-opencode-free"
+Upstream = "https://github.com/Oaklight/llm-rosetta"
+
+[project.entry-points."llm_rosetta.shim_providers"]
+opencode_zen_free = "llm_rosetta_shim_opencode_zen_free:register_shims"
+
+[tool.setuptools.dynamic]
+version = { attr = "llm_rosetta_shim_opencode_zen_free.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+llm_rosetta_shim_opencode_zen_free = ["providers/**/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

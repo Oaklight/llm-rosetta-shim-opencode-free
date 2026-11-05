@@ -38,6 +38,9 @@ def _config() -> dict:
 def test_registers_the_free_lane_shim(_registered):
     shim = get_shim(_SHIM)
     assert shim is not None
+    # A single-provider shim is its own provider: no vendor manifest above it,
+    # so the keyless declaration stays on the leaf.
+    assert shim.manifest is None
     assert shim.base == "chat_completions"
     assert shim.free_source is True
     assert shim.connection.keyless

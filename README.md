@@ -20,12 +20,18 @@ keeps working after its preset declaration is switched to `free`.
 
 ## Where these come from — and what they are not
 
-These endpoints were found through
-[**awesome-free-llm-apis**](https://github.com/mnfst/awesome-free-llm-apis),
-a community list of LLM APIs with permanent free tiers. That repository is the
-source: it is where each vendor below was learned about, and it is the place to
-look for the current roster, limits and terms. Every shim here was then probed
-directly before it was written, but the list, not this package, is the record.
+These endpoints are a **collection from public sources**, not original research.
+Some came from
+[**awesome-free-llm-apis**](https://github.com/mnfst/awesome-free-llm-apis), a
+community list of LLM APIs with permanent free tiers. Others were inspired by,
+or adapted from, other open-source projects that catalogue free endpoints or
+integrate with them. Credit for the discovery belongs to those projects and
+their authors; this repository only turns the result into shims, and every shim
+was probed directly before it was written.
+
+Because the sources are mixed, this package is deliberately not the authority on
+any of them: check the upstream's own documentation for the current roster,
+limits and terms.
 
 **This is a collection, not an endorsement.** Neither this project nor its
 author is affiliated with, approved by, or partnered with any of these vendors,
@@ -53,10 +59,13 @@ If an upstream asks to be removed, its shim is withdrawn.
 <details>
 <summary>中文说明</summary>
 
-本仓库收录的接口来自
+本仓库收录的接口来自**公开渠道的汇总**，不是原创调研。其中一部分来自
 [**awesome-free-llm-apis**](https://github.com/mnfst/awesome-free-llm-apis) ——
-一个社区维护的「有永久免费额度的 LLM API」清单。厂商、免费模型与限额都以该清单为准；
-写 shim 之前我们对每一条做了实测，但记录本身在那份清单，不在本包。
+一个社区维护的「有永久免费额度的 LLM API」清单；另一部分参考或改编自其他开源项目
+（收录免费端点的清单类项目、以及集成这些端点的客户端项目）。发现的功劳属于这些项目
+及其作者，本仓库只把结果落成 shim，并在写入前逐条实测。
+
+正因为来源是混合的，本包不对任何一条做权威担保：模型清单、限额与条款以上游自己的文档为准。
 
 **这里是收集，不是背书。** 本项目及作者与这些厂商没有任何隶属、授权或合作关系，
 也不对其服务质量作任何判断。

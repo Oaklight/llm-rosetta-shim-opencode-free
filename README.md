@@ -1,122 +1,87 @@
-# llm-rosetta-shim-opencode-free
+# llm-rosetta-shim-free
 
-OpenCode Zen's keyless free lane for
-[llm-rosetta](https://github.com/Oaklight/llm-rosetta), delivered as a **plugin
-package** rather than as a built-in shim.
+Keyless free LLM endpoints for [llm-rosetta](https://github.com/Oaklight/llm-rosetta),
+delivered as a plugin package. Every shim here serves a free pool that needs no
+account:
 
-The `opencode_zen_free--chat_completions` shim left llm-rosetta core so the
-experimental lane can evolve (and be withdrawn) without a core release. Declare
-it in the gateway config and use it like any other provider:
-
-```jsonc
-{
-  "shims": { "presets": ["opencode_zen_free"] },
-  "providers": { "zen-free": { "type": "opencode_zen_free--chat_completions" } },
-  "models": { "big-pickle": { "provider": "zen-free" } }
-}
-```
-
-`shims.presets` expands to this repository's archive path via llm-rosetta's
-catalogue; the equivalent explicit entry is
-`{"url": "https://github.com/Oaklight/llm-rosetta-shim-opencode-free",
-"path": "src/llm_rosetta_shim_opencode_zen_free/providers"}`. The repository is
-public, so no `token_env` is needed.
-
-## The shim
-
-| Shim | Format | Base URL | Credential |
+| Shim | Vendor | Default Base URL | Credential |
 |:---|:---|:---|:---|
-| `opencode_zen_free--chat_completions` | `chat_completions` | `https://opencode.ai/zen/v1` | none (`Bearer public`) |
+| `kilo_free--chat_completions` | Kilo Code | `https://api.kilo.ai/api/gateway` | none (keyless) |
+| `llm7--chat_completions` | LLM7.io | `https://api.llm7.io/v1` | none (keyless) |
+| `opencode_zen_free--chat_completions` | OpenCode (Zen) | `https://opencode.ai/zen/v1` | none (keyless) |
+| `ovhcloud--chat_completions` | OVHcloud AI Endpoints | `https://oai.endpoints.kepler.ai.cloud.ovh.net/v1` | none (keyless) |
 
-It reproduces the request shape OpenCode's own client sends — the
-`opencode/<version>` User-Agent, the `x-opencode-client` / `x-opencode-project`
-markers, a session id in OpenCode's identifier layout, a `read` declaration, and
-forced streaming — filters the model listing to the zero-cost slice, and removes
-calls to the injected `read` placeholder from the response (a turn whose every
-call was removed finishes with `stop`).
+All four are OpenAI Chat Completions lanes.
 
-## Status: the lane is gated to OpenCode's own client
+This repository was `llm-rosetta-shim-opencode-free` and shipped only the
+OpenCode Zen lane. It was renamed when the other keyless pools joined it. The
+OpenCode shim's name did not change, so a config written for the old package
+keeps working after its preset declaration is switched to `free`.
 
-Measured 2026-11-01, the upstream only answers requests from the OpenCode client
-itself. A request that reproduces the client's **body and headers byte for byte**
-— captured from a real `opencode` session through a local MITM proxy — is still
-refused with `429 FreeUsageLimitError` when sent with curl, Node `https`, Node
-`fetch`, Bun `fetch`, or browser-impersonating TLS (curl-impersonate
-chrome/firefox/safari), on a host where the genuine client answers in the same
-minute. The gate therefore keys on the client's transport (TLS/HTTP stack), not
-on anything a shim can set.
+## Why these live outside core
 
-`429 FreeUsageLimitError` is also what genuine quota exhaustion returns, so the
-two cannot be told apart from the response alone; the only reliable control is
-the real client from the same host.
+Free endpoints belong to their upstream. They change rate limits, rotate their
+model roster, and can close without notice. None of the four carries a contract,
+so shipping them as a standalone package lets the project withdraw or update
+them without a core release. The built-in shims are for vendors whose endpoint
+is a product you can depend on.
 
-Consequences for this package:
+Kilo is the one vendor that ships on both sides: the paid gateway is the
+built-in `kilo--chat_completions` (always sends `KILO_API_KEY`, offers the whole
+catalogue), and the keyless pool is `kilo_free--chat_completions` here. Keeping
+the two contracts apart is what lets the paid leaf demand a credential.
 
-- Treat it as **experimental**. It is kept because the upstream may relax the
-  gate, and because the request-shape work (model filter, placeholder tool,
-  finish-reason rewrite) is reusable.
-- A gateway built on an ordinary HTTP client will most likely receive `429` from
-  the lane. Nothing in this repository's configuration changes that.
+## Rate limits
 
-## Archive and mirror
+- **Kilo**: 200 requests per hour per IP on the free pool.
+- **LLM7**: anonymous access reaches the `turbo` models. A free token from
+  `token.llm7.io` raises the rate ceiling to 1 RPS / 60 RPM / 250 requests per
+  hour / 100,000 tokens per 24 h, and reaches the same models.
+- **OpenCode Zen**: the lane is gated to the OpenCode client's request shape;
+  see the shim's `transforms.py`.
+- **OVHcloud**: 2 requests per minute per IP per model, anonymous. A Public
+  Cloud project key raises it to 400 RPM per project per model and bills per
+  token.
 
-Every release publishes one archive of the bundled shims, so a gateway can load
-them from a host other than GitHub. `main` never carries it: `dist/` is build
-output and is in `.gitignore`.
+## What each shim fixes
 
-- `v<version>/opencode_zen_free.tar.gz` and `v<version>/opencode_zen_free.tar.gz.sha256` live on the
-  orphan `dist` branch.
-- The same bytes are attached to the GitHub Release, with the digest in its
-  notes.
+- **Reasoning field.** LLM7 and OVHcloud put reasoning text on
+  `message.reasoning` / `delta.reasoning`, while the Chat Completions converter
+  reads `reasoning_content`. Both ship a rename, a no-op when no reasoning is
+  present. Kilo's free lane carries no rename: its reasoning field has not been
+  probed, and an unverified rename is worse than none.
+- **Model roster.** Kilo's and OpenCode's catalogs list the paid models beside
+  the free ones; their `model_list_transform`s keep only the free slice. LLM7's
+  catalog is typed and tiered, so its transform keeps `model_type: chat` in the
+  `turbo` tier. OVHcloud's listing carries no type field and is offered whole.
+- **Request shape.** OpenCode's lane refuses a request that does not declare a
+  tool named exactly `read`; the shim injects a placeholder declaration and
+  removes any call to it from the response.
 
-Two interchangeable, version-pinned URLs for the same bytes:
+## Usage with the gateway
 
-```
-https://github.com/Oaklight/llm-rosetta-shim-opencode-free/releases/download/v<version>/opencode_zen_free.tar.gz
-https://cdn.jsdelivr.net/gh/Oaklight/llm-rosetta-shim-opencode-free@dist/v<version>/opencode_zen_free.tar.gz
-```
-
-The archive's root is `providers/`, the layout the package ships under
-`src/llm_rosetta_shim_opencode_zen_free/providers`, so a gateway source declares `path: "providers"`:
+Declare the source, then configure a provider for it:
 
 ```jsonc
 {
-  "shims": {
-    "remotes": [
-      {
-        "url": "https://cdn.jsdelivr.net/gh/Oaklight/llm-rosetta-shim-opencode-free@dist/v<version>/opencode_zen_free.tar.gz",
-        "path": "providers",
-        "archive": "tar.gz",
-        "sha256": "<digest from v<version>/opencode_zen_free.tar.gz.sha256>"
-      }
-    ]
+  "shims": { "presets": ["free"] },
+  "providers": {
+    "kilo-free": { "type": "kilo_free--chat_completions" },
+    "llm7-free": { "type": "llm7--chat_completions" },
+    "ovh-free": { "type": "ovhcloud--chat_completions" }
   }
 }
 ```
 
-The digest is what pins the mirror, and the same value appears in the release
-notes. jsDelivr is only the default suggestion: the gateway accepts any URL that
-serves the same bytes, an internal mirror included.
+`keyless: true` means no `api_key` is required; supplying one switches the same
+shim to `Authorization: Bearer <key>`, which is how an operator with a paid
+OVHcloud project or an LLM7 token uses the higher limits.
 
-### Publishing a release
+## Privacy
 
-1. Bump `__version__` in `src/llm_rosetta_shim_opencode_zen_free/__init__.py`. The tag must match it —
-   the release workflow passes the tag without its `v` as `--expect-version` and
-   refuses a mismatch.
-2. `python scripts/build_shim_archive.py --write` builds
-   `dist/v<version>/opencode_zen_free.tar.gz` and its digest locally and verifies the
-   layout. CI runs the same build without writing on every push, so a tree whose
-   `providers/` layout changed fails before a tag is cut.
-3. Tag and push: `git tag v<version> && git push origin v<version>`.
-4. `.github/workflows/release.yml` builds from the tag, creates or updates the
-   GitHub Release, uploads the archive and its digest file, and commits
-   `v<version>/` to the `dist` branch.
-
-The workflow requests `contents: write` for `GITHUB_TOKEN`, because it creates
-the release and pushes `dist`. An organization that downgrades action tokens to
-read-only must restore "Read and write permissions" under Settings → Actions →
-General, or the release step fails.
+Every endpoint here is a third-party service, and free tiers may log prompts.
+Never send secrets or personal data through them.
 
 ## License
 
-MIT
+MIT.

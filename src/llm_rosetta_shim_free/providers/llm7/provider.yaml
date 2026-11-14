@@ -1,0 +1,26 @@
+# LLM7.io — anonymous free gateway.
+#
+# Anonymous access needs no credential and reaches the ``turbo`` models; a free
+# token from token.llm7.io raises the rate and the token ceiling but reaches
+# the same models, so supplying a key switches this shim back to Bearer auth.
+#
+# Measured 2026-11-13: chat answers 200 with no key, and GET /v1/models tags
+# every entry with ``model_type`` (chat, image, video, audio_to_text,
+# systemone) and ``tier`` (turbo, pro), which is what the model-list transform
+# filters on.  Reasoning arrives on ``reasoning``, which the rename fixes.
+name: llm7--chat_completions
+model_type: llm
+format: chat_completions
+display_name: LLM7 (Free)
+free_source: true
+group_label: LLM7.io
+# No icon for this vendor exists in the icon sets the other shims use; the
+# admin UI falls back to a generated mark when ``logo`` is absent.
+hint_msg:
+  en: "Anonymous free pool: the turbo models only. Add a free token to raise the rate limit; the model set does not change."
+  zh: "匿名免费池：只服务 turbo 模型。填入免费 token 可提高速率限制，模型范围不变。"
+
+connection:
+  base_url: https://api.llm7.io/v1
+  keyless: true
+  models_path: /models

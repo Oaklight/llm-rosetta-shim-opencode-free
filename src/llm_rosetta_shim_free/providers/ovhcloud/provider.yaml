@@ -1,0 +1,25 @@
+# OVHcloud AI Endpoints — anonymous free tier.
+#
+# The lane needs no credential at all: 2 requests per minute per IP per model.
+# A Public Cloud project key raises the ceiling to 400 RPM per project per
+# model and bills per token; supplying one switches the same shim to Bearer
+# auth, exactly as the Kilo shim does.
+#
+# Measured 2026-11-13: chat, SSE streaming and tool calls answer 200 with no
+# key.  Reasoning arrives on ``delta.reasoning`` / ``message.reasoning``, which
+# is what the converter cannot read without the rename below.
+name: ovhcloud--chat_completions
+model_type: llm
+format: chat_completions
+display_name: OVHcloud (Free)
+free_source: true
+group_label: OVHcloud
+logo: https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/ovh.svg
+hint_msg:
+  en: "Anonymous free tier: 2 requests per minute per IP per model. Add an API key to raise the limit and be billed per token."
+  zh: "匿名免费额度：每 IP、每模型每分钟 2 次请求。填入 API Key 可提高限额并按 token 计费。"
+
+connection:
+  base_url: https://oai.endpoints.kepler.ai.cloud.ovh.net/v1
+  keyless: true
+  models_path: /models

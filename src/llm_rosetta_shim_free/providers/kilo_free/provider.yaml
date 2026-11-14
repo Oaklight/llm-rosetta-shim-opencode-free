@@ -1,0 +1,24 @@
+# Kilo — free model pool (keyless).
+#
+# Kilo's public gateway serves a free slice with no credential.  The paid lane
+# is a built-in shim, ``kilo--chat_completions``, which always sends a key and
+# offers the whole catalogue; this leaf sends none and offers only the models
+# the upstream marks free.
+#
+# Measured 2026-11-13: the same gateway answers with and without a key, and
+# ``GET /models`` tags the free slice with ``isFree: true``.
+name: kilo_free--chat_completions
+model_type: llm
+format: chat_completions
+display_name: Kilo (Free)
+free_source: true
+group_label: Kilo
+logo: https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@latest/icons/kilocode.svg
+hint_msg:
+  en: "Keyless free pool. Only the models the upstream marks free are listed; the paid lane is kilo--chat_completions."
+  zh: "无密钥免费池。只列出上游标记为免费的模型；付费线路是 kilo--chat_completions。"
+
+connection:
+  base_url: https://api.kilo.ai/api/gateway
+  keyless: true
+  models_path: /models

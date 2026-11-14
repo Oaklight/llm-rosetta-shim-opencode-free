@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 _SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "build_shim_archive.py"
-_PACKAGE = "llm_rosetta_shim_opencode_zen_free"
+_PACKAGE = "llm_rosetta_shim_free"
 
 
 def _load_script():
@@ -36,7 +36,9 @@ def _repack(data: bytes, *, add: str | None = None, drop: str | None = None) -> 
     """Return *data* with one member added or removed."""
     out = io.BytesIO()
     with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as src:
-        members = [(m, src.extractfile(m).read()) for m in src.getmembers() if m.isfile()]
+        members = [
+            (m, src.extractfile(m).read()) for m in src.getmembers() if m.isfile()
+        ]
     with tarfile.open(fileobj=out, mode="w:gz") as tar:
         for member, blob in members:
             if member.name == drop:
@@ -50,7 +52,7 @@ def _repack(data: bytes, *, add: str | None = None, drop: str | None = None) -> 
 
 
 def test_the_shim_name_matches_the_package():
-    assert archive.shim_name() == "opencode_zen_free"
+    assert archive.shim_name() == "free"
     assert archive.package_dir().name == _PACKAGE
 
 
